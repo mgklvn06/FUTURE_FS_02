@@ -16,6 +16,8 @@ function SearchIcon() {
 export default function Navbar({
   pageTitle,
   pageDescription,
+  workspaceName,
+  workspaceRole,
   searchTerm,
   setSearchTerm,
   isRefreshing,
@@ -37,6 +39,14 @@ export default function Navbar({
             {pageTitle}
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-600">{pageDescription}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <div className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">
+              {workspaceName || "Workspace"}
+            </div>
+            <div className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-800">
+              {workspaceRole === "admin" ? "Admin" : "Member"}
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-col gap-3 lg:min-w-[420px] lg:flex-row lg:items-center">

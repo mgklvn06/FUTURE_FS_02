@@ -9,6 +9,16 @@ const noteSchema = new mongoose.Schema(
       required: [true, 'Note text is required'],
       trim: true,
     },
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    authorName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     date: {
       type: Date,
       default: Date.now,
@@ -43,6 +53,22 @@ const leadSchema = new mongoose.Schema(
     notes: {
       type: [noteSchema],
       default: [],
+    },
+    team: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Team',
+      default: null,
+      index: true,
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    createdByName: {
+      type: String,
+      trim: true,
+      default: '',
     },
   },
   { timestamps: true }

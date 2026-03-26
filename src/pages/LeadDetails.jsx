@@ -21,7 +21,7 @@ function DetailField({ label, value }) {
 
 export default function LeadDetails() {
   const { id } = useParams();
-  const { leads, loading, error, refreshLeads } = useOutletContext();
+  const { leads, loading, error, refreshLeads, user } = useOutletContext();
   const [noteText, setNoteText] = useState("");
   const [isSavingNote, setIsSavingNote] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -143,6 +143,8 @@ export default function LeadDetails() {
             <DetailField label="Created" value={formatFullDate(lead.createdAt)} />
             <DetailField label="Last Updated" value={formatFullDate(lead.updatedAt)} />
             <DetailField label="Notes" value={`${notes.length} note${notes.length === 1 ? "" : "s"}`} />
+            <DetailField label="Added By" value={lead.createdByName || "Workspace admin"} />
+            <DetailField label="Workspace" value={user?.team?.name || "Shared team workspace"} />
           </div>
         </section>
 
@@ -188,7 +190,9 @@ export default function LeadDetails() {
                   className="rounded-3xl border border-slate-200 bg-slate-50 px-5 py-5"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold text-slate-900">Team note</p>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {note.authorName || "Team note"}
+                    </p>
                     <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
                       {formatFullDate(note.date)}
                     </p>

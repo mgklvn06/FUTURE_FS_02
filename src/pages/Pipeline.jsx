@@ -59,6 +59,9 @@ function PipelineLeadCard({
               {lead.name}
             </h3>
             <p className="truncate text-sm text-slate-600">{lead.email}</p>
+            <p className="mt-1 truncate text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Added by {lead.createdByName || "Workspace admin"}
+            </p>
           </div>
         </div>
 

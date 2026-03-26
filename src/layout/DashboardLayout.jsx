@@ -1,5 +1,6 @@
 import { useDeferredValue, useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { getLeads } from "../services/api";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
@@ -34,6 +35,7 @@ function getPageMeta(pathname) {
 
 export default function DashboardLayout() {
   const location = useLocation();
+  const { isAdmin, logout, user } = useAuth();
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -91,7 +93,14 @@ export default function DashboardLayout() {
 
   const normalizedSearch = deferredSearch.trim().toLowerCase();
   const filteredLeads = leads.filter((lead) =>
-    [lead.name, lead.email, lead.source, lead.status].some((value) =>
+    [
+      lead.name,
+      lead.email,
+      lead.source,
+      lead.status,
+      lead.createdByName,
+      ...(lead.notes ?? []).map((note) => note.authorName),
+    ].some((value) =>
       value?.toLowerCase().includes(normalizedSearch)
     )
   );
@@ -101,7 +110,7 @@ export default function DashboardLayout() {
   return (
     <div className="min-h-screen px-4 py-4 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-[1600px] gap-4 xl:grid-cols-[280px_minmax(0,1fr)]">
-        <Sidebar leads={leads} />
+        <Sidebar leads={leads} onLogout={logout} user={user} />
 
         <div className="relative min-w-0 overflow-hidden rounded-[36px] border border-slate-200/70 bg-white/90 shadow-[0_40px_120px_-50px_rgba(15,23,42,0.5)] ring-1 ring-white/70 backdrop-blur">
           <div className="pointer-events-none absolute left-0 top-48 h-64 w-64 rounded-full bg-slate-200/60 blur-3xl" />
@@ -111,6 +120,8 @@ export default function DashboardLayout() {
             <Navbar
               pageTitle={pageMeta.title}
               pageDescription={pageMeta.description}
+              workspaceName={user?.team?.name}
+              workspaceRole={user?.role}
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               isRefreshing={isRefreshing}
@@ -124,11 +135,13 @@ export default function DashboardLayout() {
                   leads,
                   filteredLeads,
                   loading,
-                  error,
-                  refreshLeads,
-                  searchTerm,
-                }}
-              />
+                error,
+                isAdmin,
+                refreshLeads,
+                searchTerm,
+                user,
+              }}
+            />
             </main>
           </div>
         </div>

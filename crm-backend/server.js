@@ -5,7 +5,10 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 
 import connectDB from './config/db.js';
+import authRoutes from './routes/authRoutes.js';
 import leadRoutes from './routes/leadRoutes.js';
+import { getJwtSecret } from './utils/token.js';
+import { backfillLegacyWorkspace } from './utils/workspaceMigration.js';
 
 dotenv.config();
 
@@ -36,6 +39,7 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+app.use('/api/auth', authRoutes);
 app.use('/api/leads', leadRoutes);
 
 app.use((req, res) => {
@@ -46,7 +50,9 @@ app.use((req, res) => {
 
 const startServer = async () => {
   try {
+    getJwtSecret();
     await connectDB();
+    await backfillLegacyWorkspace();
 
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createLead } from "../services/api";
+import { createLead, getErrorMessage } from "../services/api";
 
 export default function LeadForm({ onLeadCreated }) {
   const [formData, setFormData] = useState({
@@ -29,7 +29,7 @@ export default function LeadForm({ onLeadCreated }) {
       await onLeadCreated?.();
     } catch (error) {
       console.error("Error creating lead:", error);
-      setFeedback("We could not save this lead right now. Please try again.");
+      setFeedback(getErrorMessage(error, "We could not save this lead right now. Please try again."));
     } finally {
       setIsSaving(false);
     }

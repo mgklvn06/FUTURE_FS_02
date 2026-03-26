@@ -1,7 +1,9 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-dom";
+import { GuestRoute, ProtectedRoute } from "./components/RouteGuards";
 import DashboardLayout from "./layout/DashboardLayout";
 
+const Auth = lazy(() => import("./pages/Auth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Leads = lazy(() => import("./pages/Leads"));
 const Pipeline = lazy(() => import("./pages/Pipeline"));
@@ -25,11 +27,17 @@ function App() {
     <Router>
       <Suspense fallback={<RouteFallback />}>
         <Routes>
-          <Route path="/" element={<DashboardLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="leads" element={<Leads />} />
-            <Route path="pipeline" element={<Pipeline />} />
-            <Route path="lead/:id" element={<LeadDetails />} />
+          <Route element={<GuestRoute />}>
+            <Route path="/auth" element={<Auth />} />
+          </Route>
+
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<DashboardLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="leads" element={<Leads />} />
+              <Route path="pipeline" element={<Pipeline />} />
+              <Route path="lead/:id" element={<LeadDetails />} />
+            </Route>
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

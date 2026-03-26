@@ -100,8 +100,47 @@ function EmptyChartState({ title, description }) {
   );
 }
 
+function WorkspaceAccessCard({ user, isAdmin }) {
+  return (
+    <section className="rounded-[30px] border border-slate-200/70 bg-white/95 p-6 shadow-[0_30px_80px_-48px_rgba(15,23,42,0.55)] ring-1 ring-white/70 backdrop-blur">
+      <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-700">
+        Workspace Access
+      </p>
+      <h2 className="font-display mt-3 text-2xl font-semibold text-slate-950">
+        {isAdmin ? "You manage lead intake" : "You collaborate inside the shared pipeline"}
+      </h2>
+      <p className="mt-3 text-sm leading-6 text-slate-600">
+        {isAdmin
+          ? "Admins can invite teammates and add new leads for the workspace. Members can still update stages and leave notes once the lead is in play."
+          : "Members can update statuses, leave notes, and keep records current. Ask an admin to add new leads or share the invite code with another teammate."}
+      </p>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <div className="rounded-3xl border border-slate-200 bg-slate-50 px-5 py-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Workspace</p>
+          <p className="mt-3 text-lg font-semibold text-slate-950">{user?.team?.name || "Workspace"}</p>
+          <p className="mt-2 text-sm text-slate-600">
+            {user?.team?.memberCount ?? 0} member{user?.team?.memberCount === 1 ? "" : "s"} currently share this CRM.
+          </p>
+        </div>
+        <div className="rounded-3xl border border-slate-200 bg-slate-50 px-5 py-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Role</p>
+          <p className="mt-3 text-lg font-semibold text-slate-950">
+            {isAdmin ? "Admin workspace owner" : "Member collaborator"}
+          </p>
+          <p className="mt-2 text-sm text-slate-600">
+            {isAdmin
+              ? `Invite teammates with code ${user?.team?.inviteCode || "unavailable"}.`
+              : "You can keep the pipeline updated without owning workspace administration."}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Dashboard() {
-  const { leads, filteredLeads, error, refreshLeads, searchTerm } = useOutletContext();
+  const { error, filteredLeads, isAdmin, leads, refreshLeads, searchTerm, user } = useOutletContext();
   const analyticsLeads = searchTerm ? filteredLeads : leads;
   const totalLeads = analyticsLeads.length;
   const conversionRate = getConversionRate(analyticsLeads);
@@ -139,6 +178,9 @@ export default function Dashboard() {
             <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">
               Read pipeline health at a glance, track status distribution, and spot conversion momentum
               without leaving the main dashboard.
+            </p>
+            <p className="mt-3 text-sm font-semibold uppercase tracking-[0.22em] text-cyan-200">
+              Workspace: {user?.team?.name || "Workspace"} · {isAdmin ? "Admin" : "Member"} access
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -398,7 +440,7 @@ export default function Dashboard() {
           )}
         </ChartCard>
 
-        <LeadForm onLeadCreated={refreshLeads} />
+        {isAdmin ? <LeadForm onLeadCreated={refreshLeads} /> : <WorkspaceAccessCard isAdmin={isAdmin} user={user} />}
       </section>
 
       <ChartCard

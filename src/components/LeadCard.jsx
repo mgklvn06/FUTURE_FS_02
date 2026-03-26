@@ -24,12 +24,15 @@ export default function LeadCard({ lead, onStatusChange, isUpdating = false }) {
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
                 {formatSource(lead.source)}
               </p>
-              <h3 className="font-display mt-2 text-xl font-semibold text-slate-950">
-                {lead.name}
-              </h3>
-              <p className="mt-1 text-sm text-slate-600">{lead.email}</p>
-            </div>
+            <h3 className="font-display mt-2 text-xl font-semibold text-slate-950">
+              {lead.name}
+            </h3>
+            <p className="mt-1 text-sm text-slate-600">{lead.email}</p>
+            <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+              Added by {lead.createdByName || "Workspace admin"}
+            </p>
           </div>
+        </div>
 
           <span className={status.badgeClass}>{status.label}</span>
         </div>

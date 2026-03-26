@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { getInitials } from "../utils/leadUi";
 
 function DashboardIcon() {
   return (
@@ -45,9 +46,11 @@ const navigation = [
   { to: "/pipeline", label: "Pipeline", icon: PipelineIcon, end: false },
 ];
 
-export default function Sidebar({ leads }) {
+export default function Sidebar({ leads, onLogout, user }) {
   const convertedLeads = leads.filter((lead) => lead.status === "converted").length;
   const conversionRate = leads.length ? Math.round((convertedLeads / leads.length) * 100) : 0;
+  const team = user?.team;
+  const roleLabel = user?.role === "admin" ? "Admin" : "Member";
 
   return (
     <aside className="self-start xl:sticky xl:top-4">
@@ -108,8 +111,57 @@ export default function Sidebar({ leads }) {
           </div>
         </div>
 
-        <div className="mt-8 border-t border-white/10 pt-6 text-sm text-slate-500 xl:mt-auto">
-          Search, filter, and update the funnel without leaving the dashboard shell.
+        <div className="mt-8 rounded-[28px] border border-white/10 bg-white/6 p-5 ring-1 ring-white/10 xl:mt-auto">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Secure Session</p>
+          <div className="mt-4 flex items-start gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-cyan-300/15 text-sm font-semibold text-cyan-100 ring-1 ring-cyan-200/20">
+              {getInitials(user?.name || user?.email || "User")}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-white">{user?.name || "Team Member"}</p>
+              <p className="truncate text-sm text-slate-400">{user?.email || "No email available"}</p>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
+              Workspace
+            </p>
+            <p className="mt-2 text-sm font-semibold text-white">{team?.name || "Not assigned"}</p>
+            <p className="mt-2 text-sm text-slate-400">
+              {team?.memberCount ?? 0} member{team?.memberCount === 1 ? "" : "s"} in this shared pipeline.
+            </p>
+            {team?.inviteCode ? (
+              <div className="mt-4 rounded-2xl border border-cyan-400/15 bg-cyan-400/10 px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-200">
+                  Invite Code
+                </p>
+                <p className="mt-1 text-base font-semibold tracking-[0.18em] text-white">
+                  {team.inviteCode}
+                </p>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-cyan-400/15 bg-cyan-400/10 px-4 py-3">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-200">
+                Access Level
+              </p>
+              <p className="mt-1 text-sm font-semibold text-white">{roleLabel}</p>
+            </div>
+            <button
+              type="button"
+              onClick={onLogout}
+              className="rounded-2xl border border-white/10 bg-white/8 px-4 py-2 text-sm font-semibold text-white transition hover:border-cyan-300/30 hover:bg-white/12"
+            >
+              Log Out
+            </button>
+          </div>
+
+          <p className="mt-4 text-sm leading-6 text-slate-400">
+            Search, filter, and update the funnel without leaving the dashboard shell.
+          </p>
         </div>
       </div>
     </aside>
