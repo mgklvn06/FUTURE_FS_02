@@ -2,10 +2,12 @@ import express from 'express';
 
 import {
   addNote,
+  addFollowUp,
   createLead,
   deleteLead,
   getLeads,
   updateLead,
+  updateFollowUp,
   updateStatus,
 } from '../controllers/leadController.js';
 import protect from '../middleware/authMiddleware.js';
@@ -22,5 +24,7 @@ router.delete('/:id', requireRole('admin'), deleteLead);
 router.patch('/:id/status', updateStatus);
 router.put('/:id/status', updateStatus);
 router.post('/:id/notes', addNote);
+router.post('/:id/follow-ups', addFollowUp);
+router.patch('/:id/follow-ups/:followUpId', updateFollowUp);
 
 export default router;

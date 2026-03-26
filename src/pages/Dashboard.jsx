@@ -17,8 +17,10 @@ import LeadForm from "../components/LeadForm";
 import {
   formatRelativeTime,
   getConversionRate,
+  getFollowUpStatusMeta,
   getLeadTrend,
   getRecentActivity,
+  getReminderHeadline,
   getStatusBreakdown,
   getStatusMeta,
 } from "../utils/leadUi";
@@ -111,8 +113,8 @@ function WorkspaceAccessCard({ user, isAdmin }) {
       </h2>
       <p className="mt-3 text-sm leading-6 text-slate-600">
         {isAdmin
-          ? "Admins can invite teammates and add new leads for the workspace. Members can still update stages and leave notes once the lead is in play."
-          : "Members can update statuses, leave notes, and keep records current. Ask an admin to add new leads or share the invite code with another teammate."}
+          ? "Admins can invite teammates and add new leads for the workspace. Members can still update stages, schedule follow-ups, and leave notes once the lead is in play."
+          : "Members can update statuses, schedule follow-ups, and leave notes. Ask an admin to add new leads or share the invite code with another teammate."}
       </p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -139,8 +141,70 @@ function WorkspaceAccessCard({ user, isAdmin }) {
   );
 }
 
+function ReminderCenterCard({ followUpSummary }) {
+  const reminderItems = followUpSummary.reminderQueue;
+
+  return (
+    <ChartCard
+      eyebrow="Reminder Center"
+      title="Scheduled follow-ups"
+      description="Keep the team's next touchpoints visible, especially the ones that already need attention."
+      footer={
+        <div className="flex flex-wrap gap-3">
+          <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+            {followUpSummary.open.length} open follow-up{followUpSummary.open.length === 1 ? "" : "s"}
+          </div>
+          <div className="rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+            {followUpSummary.overdue.length} overdue
+          </div>
+          <div className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-2 text-sm text-cyan-800">
+            {followUpSummary.dueToday.length} due today
+          </div>
+        </div>
+      }
+    >
+      <div className="space-y-4">
+        {reminderItems.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-sm text-slate-600">
+            No reminders are demanding attention right now. Scheduled follow-ups will appear here automatically.
+          </div>
+        ) : (
+          reminderItems.map((item) => {
+            const statusMeta = getFollowUpStatusMeta(item.status);
+
+            return (
+              <Link
+                key={`${item.leadId}-${item._id}`}
+                to={`/lead/${item.leadId}`}
+                className="block rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 transition hover:border-cyan-200 hover:bg-cyan-50/40"
+              >
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">
+                      {getReminderHeadline(item)}
+                    </p>
+                    <p className="mt-2 text-lg font-semibold text-slate-950">{item.title}</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      {item.leadName} | Due {formatRelativeTime(item.dueAt)}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {item.details || "Open the lead record to add context or mark this follow-up complete."}
+                    </p>
+                  </div>
+                  <span className={statusMeta.badgeClass}>{statusMeta.label}</span>
+                </div>
+              </Link>
+            );
+          })
+        )}
+      </div>
+    </ChartCard>
+  );
+}
+
 export default function Dashboard() {
-  const { error, filteredLeads, isAdmin, leads, refreshLeads, searchTerm, user } = useOutletContext();
+  const { error, filteredLeads, followUpSummary, isAdmin, leads, refreshLeads, searchTerm, user } =
+    useOutletContext();
   const analyticsLeads = searchTerm ? filteredLeads : leads;
   const totalLeads = analyticsLeads.length;
   const conversionRate = getConversionRate(analyticsLeads);
@@ -173,14 +237,14 @@ export default function Dashboard() {
               Dashboard Analytics
             </p>
             <h2 className="font-display mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">
-              KPI snapshots and visual pipeline insight in a cleaner SaaS control center.
+              KPI snapshots, reminder visibility, and pipeline insight in one control center.
             </h2>
             <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">
-              Read pipeline health at a glance, track status distribution, and spot conversion momentum
-              without leaving the main dashboard.
+              Read pipeline health at a glance, spot overdue follow-ups, and keep the team's next actions visible
+              without leaving the dashboard.
             </p>
             <p className="mt-3 text-sm font-semibold uppercase tracking-[0.22em] text-cyan-200">
-              Workspace: {user?.team?.name || "Workspace"} · {isAdmin ? "Admin" : "Member"} access
+              Workspace: {user?.team?.name || "Workspace"} | {isAdmin ? "Admin" : "Member"} access
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -197,9 +261,8 @@ export default function Dashboard() {
                 Open Kanban
               </Link>
               <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
-                {searchTerm
-                  ? `Analytics filtered by "${searchTerm}"`
-                  : "Showing the full pipeline snapshot"}
+                {followUpSummary.overdue.length} overdue follow-up
+                {followUpSummary.overdue.length === 1 ? "" : "s"} need attention
               </div>
             </div>
           </div>
@@ -263,6 +326,28 @@ export default function Dashboard() {
         />
       </section>
 
+      <section className="grid gap-4 lg:grid-cols-3">
+        <MetricCard
+          label="Open Follow-Ups"
+          value={followUpSummary.open.length}
+          hint="Planned touchpoints still waiting to happen."
+          tone="accent"
+        />
+        <MetricCard
+          label="Due Today"
+          value={followUpSummary.dueToday.length}
+          hint="Follow-ups that should land before the day closes."
+        />
+        <MetricCard
+          label="Overdue"
+          value={followUpSummary.overdue.length}
+          hint="Work that needs attention before the relationship goes cold."
+          tone="warn"
+        />
+      </section>
+
+      <ReminderCenterCard followUpSummary={followUpSummary} />
+
       <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <ChartCard
           eyebrow="Status Breakdown"
@@ -295,7 +380,12 @@ export default function Dashboard() {
                 <BarChart data={statusBreakdown} barSize={46}>
                   <CartesianGrid vertical={false} stroke="#e2e8f0" strokeDasharray="4 4" />
                   <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#475569", fontSize: 12 }} />
-                  <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: "#475569", fontSize: 12 }} />
+                  <YAxis
+                    allowDecimals={false}
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: "#475569", fontSize: 12 }}
+                  />
                   <Tooltip content={<AnalyticsTooltip />} cursor={{ fill: "rgba(148, 163, 184, 0.08)" }} />
                   <Bar dataKey="value" name="Leads" radius={[14, 14, 0, 0]}>
                     {statusBreakdown.map((entry) => (
@@ -409,7 +499,12 @@ export default function Dashboard() {
                   </defs>
                   <CartesianGrid vertical={false} stroke="#e2e8f0" strokeDasharray="4 4" />
                   <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#475569", fontSize: 12 }} />
-                  <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: "#475569", fontSize: 12 }} />
+                  <YAxis
+                    allowDecimals={false}
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: "#475569", fontSize: 12 }}
+                  />
                   <Tooltip content={<AnalyticsTooltip />} />
                   <Area
                     type="monotone"
@@ -451,7 +546,7 @@ export default function Dashboard() {
         <div className="space-y-4">
           {recentActivity.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-sm text-slate-600">
-              Activity will appear here once leads and notes start coming in.
+              Activity will appear here once leads, follow-ups, and notes start coming in.
             </div>
           ) : (
             recentActivity.map((item) => (

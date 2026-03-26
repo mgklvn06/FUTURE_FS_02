@@ -23,6 +23,8 @@ export default function Navbar({
   isRefreshing,
   totalLeads,
   resultCount,
+  overdueReminders,
+  dueTodayReminders,
 }) {
   const todayLabel = new Intl.DateTimeFormat("en-US", {
     weekday: "short",
@@ -74,6 +76,16 @@ export default function Navbar({
               {searchTerm ? `${resultCount} of ${totalLeads}` : totalLeads}
               {isRefreshing ? " - Refreshing" : ""}
             </p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+              Reminders
+            </p>
+            <p className="mt-1 font-semibold text-slate-900">
+              {overdueReminders} overdue
+            </p>
+            <p className="text-xs text-slate-500">{dueTodayReminders} due today</p>
           </div>
         </div>
       </div>

@@ -2,13 +2,22 @@ import { Link } from "react-router-dom";
 import {
   formatRelativeTime,
   formatSource,
+  getFollowUpStatus,
+  getFollowUpStatusMeta,
   getInitials,
+  getLeadFollowUpCounts,
+  getNextFollowUp,
+  getReminderHeadline,
   getStatusMeta,
   statusOptions,
 } from "../utils/leadUi";
 
 export default function LeadCard({ lead, onStatusChange, isUpdating = false }) {
   const status = getStatusMeta(lead.status);
+  const nextFollowUp = getNextFollowUp(lead);
+  const followUpCounts = getLeadFollowUpCounts(lead);
+  const nextFollowUpStatus = nextFollowUp ? getFollowUpStatus(nextFollowUp) : "";
+  const nextFollowUpMeta = getFollowUpStatusMeta(nextFollowUpStatus);
 
   return (
     <article className="group relative overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/95 p-5 shadow-[0_30px_80px_-48px_rgba(15,23,42,0.55)] ring-1 ring-white/70 transition duration-300 hover:-translate-y-1 hover:border-cyan-200 hover:shadow-[0_40px_100px_-48px_rgba(8,47,73,0.45)]">
@@ -24,20 +33,26 @@ export default function LeadCard({ lead, onStatusChange, isUpdating = false }) {
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
                 {formatSource(lead.source)}
               </p>
-            <h3 className="font-display mt-2 text-xl font-semibold text-slate-950">
-              {lead.name}
-            </h3>
-            <p className="mt-1 text-sm text-slate-600">{lead.email}</p>
-            <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
-              Added by {lead.createdByName || "Workspace admin"}
-            </p>
+              <h3 className="font-display mt-2 text-xl font-semibold text-slate-950">{lead.name}</h3>
+              <p className="mt-1 text-sm text-slate-600">{lead.email}</p>
+              <p className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                Added by {lead.createdByName || "Workspace admin"}
+              </p>
+            </div>
           </div>
-        </div>
 
           <span className={status.badgeClass}>{status.label}</span>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-4">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+              Follow-Ups
+            </p>
+            <p className="mt-2 text-sm font-semibold text-slate-900">
+              {followUpCounts.open} open / {followUpCounts.overdue} overdue
+            </p>
+          </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
               Notes
@@ -61,6 +76,33 @@ export default function LeadCard({ lead, onStatusChange, isUpdating = false }) {
             <p className="mt-2 text-sm font-semibold text-slate-900">
               {formatRelativeTime(lead.updatedAt)}
             </p>
+          </div>
+        </div>
+
+        <div
+          className={`rounded-[24px] border px-4 py-4 ${
+            nextFollowUp
+              ? nextFollowUpStatus === "overdue"
+                ? "border-rose-200 bg-rose-50"
+                : "border-cyan-200 bg-cyan-50/60"
+              : "border-slate-200 bg-slate-50"
+          }`}
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                Next Follow-Up
+              </p>
+              <p className="mt-2 text-base font-semibold text-slate-950">
+                {nextFollowUp ? nextFollowUp.title : "No follow-up scheduled yet"}
+              </p>
+              <p className="mt-2 text-sm text-slate-600">
+                {nextFollowUp
+                  ? `${getReminderHeadline(nextFollowUp)} - ${formatRelativeTime(nextFollowUp.dueAt)}`
+                  : "Open the record to schedule the next touchpoint and reminder."}
+              </p>
+            </div>
+            {nextFollowUp ? <span className={nextFollowUpMeta.badgeClass}>{nextFollowUpMeta.label}</span> : null}
           </div>
         </div>
 

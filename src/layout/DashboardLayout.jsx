@@ -2,6 +2,7 @@ import { useDeferredValue, useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getLeads } from "../services/api";
+import { getFollowUpStatus, getFollowUpSummary } from "../utils/leadUi";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 
@@ -36,6 +37,7 @@ function getPageMeta(pathname) {
 export default function DashboardLayout() {
   const location = useLocation();
   const { isAdmin, logout, user } = useAuth();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -77,6 +79,26 @@ export default function DashboardLayout() {
     };
   }, []);
 
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return undefined;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+
+    if (isSidebarOpen) {
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isSidebarOpen]);
+
   const refreshLeads = async () => {
     try {
       setIsRefreshing(true);
@@ -100,24 +122,44 @@ export default function DashboardLayout() {
       lead.status,
       lead.createdByName,
       ...(lead.notes ?? []).map((note) => note.authorName),
+      ...(lead.followUps ?? []).flatMap((followUp) => [
+        followUp.title,
+        followUp.details,
+        getFollowUpStatus(followUp),
+      ]),
     ].some((value) =>
       value?.toLowerCase().includes(normalizedSearch)
     )
   );
+  const followUpSummary = getFollowUpSummary(leads);
 
   const pageMeta = getPageMeta(location.pathname);
 
   return (
-    <div className="min-h-screen px-4 py-4 sm:px-6 lg:px-8">
-      <div className="mx-auto grid max-w-[1600px] gap-4 xl:grid-cols-[280px_minmax(0,1fr)]">
-        <Sidebar leads={leads} onLogout={logout} user={user} />
+    <div className="min-h-screen px-3 py-3 sm:px-4 sm:py-4 lg:px-5 lg:py-5">
+      {isSidebarOpen ? (
+        <div className="fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-sm xl:hidden" onClick={() => setIsSidebarOpen(false)}>
+          <Sidebar
+            leads={leads}
+            onLogout={logout}
+            onNavigate={() => setIsSidebarOpen(false)}
+            showCloseButton
+            user={user}
+            variant="drawer"
+          />
+        </div>
+      ) : null}
 
-        <div className="relative min-w-0 overflow-hidden rounded-[36px] border border-slate-200/70 bg-white/90 shadow-[0_40px_120px_-50px_rgba(15,23,42,0.5)] ring-1 ring-white/70 backdrop-blur">
+      <div className="mx-auto grid max-w-[1560px] gap-3 xl:grid-cols-[248px_minmax(0,1fr)] xl:gap-4">
+        <Sidebar leads={leads} onLogout={logout} user={user} variant="desktop" />
+
+        <div className="relative min-w-0 overflow-hidden rounded-[30px] border border-slate-200/70 bg-white/92 shadow-[0_40px_110px_-58px_rgba(15,23,42,0.4)] ring-1 ring-white/70 backdrop-blur sm:rounded-[34px]">
           <div className="pointer-events-none absolute left-0 top-48 h-64 w-64 rounded-full bg-slate-200/60 blur-3xl" />
           <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 rounded-full bg-cyan-200/40 blur-3xl" />
 
           <div className="relative">
             <Navbar
+              onMenuOpen={() => setIsSidebarOpen(true)}
               pageTitle={pageMeta.title}
               pageDescription={pageMeta.description}
               workspaceName={user?.team?.name}
@@ -127,21 +169,24 @@ export default function DashboardLayout() {
               isRefreshing={isRefreshing}
               totalLeads={leads.length}
               resultCount={filteredLeads.length}
+              overdueReminders={followUpSummary.overdue.length}
+              dueTodayReminders={followUpSummary.dueToday.length}
             />
 
-            <main className="px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+            <main className="px-3 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6">
               <Outlet
                 context={{
                   leads,
                   filteredLeads,
                   loading,
-                error,
-                isAdmin,
-                refreshLeads,
-                searchTerm,
-                user,
-              }}
-            />
+                  error,
+                  followUpSummary,
+                  isAdmin,
+                  refreshLeads,
+                  searchTerm,
+                  user,
+                }}
+              />
             </main>
           </div>
         </div>

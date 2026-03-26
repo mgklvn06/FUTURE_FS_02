@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { getInitials } from "../utils/leadUi";
+import { getFollowUpSummary, getInitials } from "../utils/leadUi";
 
 function DashboardIcon() {
   return (
@@ -49,6 +49,7 @@ const navigation = [
 export default function Sidebar({ leads, onLogout, user }) {
   const convertedLeads = leads.filter((lead) => lead.status === "converted").length;
   const conversionRate = leads.length ? Math.round((convertedLeads / leads.length) * 100) : 0;
+  const followUpSummary = getFollowUpSummary(leads, 3);
   const team = user?.team;
   const roleLabel = user?.role === "admin" ? "Admin" : "Member";
 
@@ -107,6 +108,14 @@ export default function Sidebar({ leads, onLogout, user }) {
             <p className="mt-2 text-2xl font-semibold text-white">{conversionRate}%</p>
             <p className="mt-2 text-sm text-cyan-100/80">
               A quick view of how effectively new leads are becoming customers.
+            </p>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-4">
+            <p className="text-xs uppercase tracking-[0.24em] text-rose-100">Reminder Queue</p>
+            <p className="mt-2 text-2xl font-semibold text-white">{followUpSummary.overdue.length}</p>
+            <p className="mt-2 text-sm text-rose-100/80">
+              Overdue follow-up{followUpSummary.overdue.length === 1 ? "" : "s"} with {followUpSummary.dueToday.length} due today.
             </p>
           </div>
         </div>

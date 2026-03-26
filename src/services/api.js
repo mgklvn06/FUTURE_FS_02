@@ -95,3 +95,8 @@ export const createLead = (data) => API.post("/leads", data);
 export const updateStatus = (id, status) => API.put(`/leads/${id}/status`, { status });
 
 export const addNote = (id, text) => API.post(`/leads/${id}/notes`, { text });
+
+export const addFollowUp = (id, data) => API.post(`/leads/${id}/follow-ups`, data);
+
+export const updateFollowUp = (leadId, followUpId, data) =>
+  API.patch(`/leads/${leadId}/follow-ups/${followUpId}`, data);

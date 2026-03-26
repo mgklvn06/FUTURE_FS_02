@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 export const leadStatuses = ['new', 'contacted', 'converted'];
+export const followUpStatuses = ['pending', 'done'];
 
 const noteSchema = new mongoose.Schema(
   {
@@ -25,6 +26,59 @@ const noteSchema = new mongoose.Schema(
     },
   },
   { _id: false }
+);
+
+const followUpSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: [true, 'Follow-up title is required'],
+      trim: true,
+    },
+    details: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    dueAt: {
+      type: Date,
+      required: [true, 'Follow-up due date is required'],
+    },
+    reminderAt: {
+      type: Date,
+      default: null,
+    },
+    status: {
+      type: String,
+      enum: followUpStatuses,
+      default: 'pending',
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    createdByName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    completedAt: {
+      type: Date,
+      default: null,
+    },
+    completedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    completedByName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+  },
+  { timestamps: true }
 );
 
 const leadSchema = new mongoose.Schema(
@@ -52,6 +106,10 @@ const leadSchema = new mongoose.Schema(
     },
     notes: {
       type: [noteSchema],
+      default: [],
+    },
+    followUps: {
+      type: [followUpSchema],
       default: [],
     },
     team: {
