@@ -5,6 +5,9 @@ export default function LeadList({
   loading,
   onStatusChange,
   updatingLeadId,
+  isAdmin = false,
+  onLeadUpdated,
+  onLeadDeleted,
   emptyTitle = "No leads yet",
   emptyDescription = "Add your first lead to start building the pipeline.",
 }) {
@@ -27,6 +30,9 @@ export default function LeadList({
               lead={lead}
               onStatusChange={onStatusChange}
               isUpdating={updatingLeadId === lead._id}
+              isAdmin={isAdmin}
+              onLeadUpdated={onLeadUpdated}
+              onLeadDeleted={onLeadDeleted}
             />
           ))}
         </div>

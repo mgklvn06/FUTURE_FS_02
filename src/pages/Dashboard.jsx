@@ -237,7 +237,7 @@ export default function Dashboard() {
               Dashboard Analytics
             </p>
             <h2 className="font-display mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">
-              KPI snapshots, reminder visibility, and pipeline insight in one control center.
+              Snapshots, reminder visibility, and pipeline insight in one control center.
             </h2>
             <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">
               Read pipeline health at a glance, spot overdue follow-ups, and keep the team's next actions visible
@@ -258,7 +258,7 @@ export default function Dashboard() {
                 to="/pipeline"
                 className="inline-flex items-center rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/10"
               >
-                Open Kanban
+                Open Pipeline
               </Link>
               <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
                 {followUpSummary.overdue.length} overdue follow-up

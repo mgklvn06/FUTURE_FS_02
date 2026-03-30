@@ -25,6 +25,7 @@ export default function Navbar({
   resultCount,
   overdueReminders,
   dueTodayReminders,
+  onMenuOpen,
 }) {
   const todayLabel = new Intl.DateTimeFormat("en-US", {
     weekday: "short",
@@ -33,19 +34,33 @@ export default function Navbar({
   }).format(new Date());
 
   return (
-    <header className="border-b border-slate-200/80 px-4 py-5 sm:px-6 lg:px-8">
+    <header className="border-b border-slate-200/80 px-3 py-4 sm:px-5 lg:px-8">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-700">{todayLabel}</p>
-          <h1 className="font-display mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onMenuOpen}
+              className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 py-2 text-slate-700 transition hover:border-cyan-200 hover:text-cyan-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cyan-100 xl:hidden"
+              aria-label="Open sidebar"
+            >
+              <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+                <path d="M4 6H20" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                <path d="M4 12H20" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                <path d="M4 18H20" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+              </svg>
+            </button>
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-700">{todayLabel}</p>
+          </div>
+          <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight text-slate-950">
             {pageTitle}
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-600">{pageDescription}</p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <div className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">
+            <div className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 transition hover:border-slate-300">
               {workspaceName || "Workspace"}
             </div>
-            <div className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-800">
+            <div className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-800 transition hover:border-cyan-300">
               {workspaceRole === "admin" ? "Admin" : "Member"}
             </div>
           </div>

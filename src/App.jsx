@@ -8,6 +8,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Leads = lazy(() => import("./pages/Leads"));
 const Pipeline = lazy(() => import("./pages/Pipeline"));
 const LeadDetails = lazy(() => import("./pages/LeadDetails"));
+const Settings = lazy(() => import("./pages/Settings"));
 
 function RouteFallback() {
   return (
@@ -37,6 +38,7 @@ function App() {
               <Route path="leads" element={<Leads />} />
               <Route path="pipeline" element={<Pipeline />} />
               <Route path="lead/:id" element={<LeadDetails />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

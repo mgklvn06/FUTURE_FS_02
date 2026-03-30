@@ -28,6 +28,13 @@ function getPageMeta(pathname) {
     };
   }
 
+  if (pathname === "/settings") {
+    return {
+      title: "Settings",
+      description: "Tune your workspace preferences, account details, and system behavior in one place.",
+    };
+  }
+
   return {
     title: "Dashboard Analytics",
     description: "Monitor lead volume, stage mix, conversion health, and pipeline momentum from one clean control center.",
@@ -136,24 +143,31 @@ export default function DashboardLayout() {
   const pageMeta = getPageMeta(location.pathname);
 
   return (
-    <div className="min-h-screen px-3 py-3 sm:px-4 sm:py-4 lg:px-5 lg:py-5">
+    <div className="min-h-screen px-2 py-2 sm:px-4 sm:py-4 lg:px-5 lg:py-5">
       {isSidebarOpen ? (
-        <div className="fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-sm xl:hidden" onClick={() => setIsSidebarOpen(false)}>
-          <Sidebar
-            leads={leads}
-            onLogout={logout}
-            onNavigate={() => setIsSidebarOpen(false)}
-            showCloseButton
-            user={user}
-            variant="drawer"
-          />
+        <div
+          className="fixed inset-0 z-40 flex bg-slate-950/55 backdrop-blur-sm xl:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        >
+          <div className="h-full" onClick={(event) => event.stopPropagation()}>
+            <Sidebar
+              leads={leads}
+              onLogout={logout}
+              onNavigate={() => setIsSidebarOpen(false)}
+              showCloseButton
+              user={user}
+              variant="drawer"
+            />
+          </div>
         </div>
       ) : null}
 
       <div className="mx-auto grid max-w-[1560px] gap-3 xl:grid-cols-[248px_minmax(0,1fr)] xl:gap-4">
-        <Sidebar leads={leads} onLogout={logout} user={user} variant="desktop" />
+        <div className="hidden xl:block">
+          <Sidebar leads={leads} onLogout={logout} user={user} variant="desktop" />
+        </div>
 
-        <div className="relative min-w-0 overflow-hidden rounded-[30px] border border-slate-200/70 bg-white/92 shadow-[0_40px_110px_-58px_rgba(15,23,42,0.4)] ring-1 ring-white/70 backdrop-blur sm:rounded-[34px]">
+        <div className="relative min-w-0 overflow-hidden rounded-[28px] border border-slate-200/70 bg-white/92 shadow-[0_40px_110px_-58px_rgba(15,23,42,0.4)] ring-1 ring-white/70 backdrop-blur sm:rounded-[34px]">
           <div className="pointer-events-none absolute left-0 top-48 h-64 w-64 rounded-full bg-slate-200/60 blur-3xl" />
           <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 rounded-full bg-cyan-200/40 blur-3xl" />
 

@@ -92,6 +92,10 @@ export const getLeads = () => API.get("/leads");
 
 export const createLead = (data) => API.post("/leads", data);
 
+export const updateLead = (id, data) => API.put(`/leads/${id}`, data);
+
+export const deleteLead = (id) => API.delete(`/leads/${id}`);
+
 export const updateStatus = (id, status) => API.put(`/leads/${id}/status`, { status });
 
 export const addNote = (id, text) => API.post(`/leads/${id}/notes`, { text });

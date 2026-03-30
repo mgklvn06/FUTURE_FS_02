@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Link, useOutletContext, useParams } from "react-router-dom";
-import { addFollowUp, addNote, getErrorMessage, updateFollowUp, updateStatus } from "../services/api";
+import { Link, useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { addFollowUp, addNote, deleteLead, getErrorMessage, updateFollowUp, updateLead, updateStatus } from "../services/api";
+import ConfirmDialog from "../components/ConfirmDialog";
 import {
   formatFullDate,
   formatRelativeTime,
@@ -60,6 +61,7 @@ function buildFollowUpPayload(formData) {
 
 export default function LeadDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { leads, loading, error, refreshLeads, user } = useOutletContext();
   const [noteText, setNoteText] = useState("");
   const [followUpForm, setFollowUpForm] = useState(emptyFollowUpForm);
@@ -69,6 +71,12 @@ export default function LeadDetails() {
   const [isSavingFollowUp, setIsSavingFollowUp] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [updatingFollowUpId, setUpdatingFollowUpId] = useState("");
+  const [isEditingLead, setIsEditingLead] = useState(false);
+  const [isSavingLead, setIsSavingLead] = useState(false);
+  const [leadFeedback, setLeadFeedback] = useState("");
+  const [leadForm, setLeadForm] = useState({ name: "", email: "", source: "website" });
+  const [isDeletingLead, setIsDeletingLead] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const lead = leads.find((entry) => entry._id === id);
   const status = lead ? getStatusMeta(lead.status) : null;
@@ -76,6 +84,7 @@ export default function LeadDetails() {
   const followUps = lead ? sortFollowUps(lead.followUps ?? []) : [];
   const followUpCounts = lead ? getLeadFollowUpCounts(lead) : null;
   const nextFollowUp = lead ? getNextFollowUp(lead) : null;
+  const isAdmin = user?.role === "admin";
 
   const handleStatusChange = async (event) => {
     const newStatus = event.target.value;
@@ -107,6 +116,77 @@ export default function LeadDetails() {
       console.error("Error adding note:", requestError);
     } finally {
       setIsSavingNote(false);
+    }
+  };
+
+  const handleLeadFieldChange = (event) => {
+    const { name, value } = event.target;
+    setLeadForm((current) => ({ ...current, [name]: value }));
+  };
+
+  const startEditingLead = () => {
+    if (!lead) {
+      return;
+    }
+
+    setLeadForm({
+      name: lead.name || "",
+      email: lead.email || "",
+      source: lead.source || "website",
+    });
+    setLeadFeedback("");
+    setIsEditingLead(true);
+  };
+
+  const cancelEditingLead = () => {
+    setIsEditingLead(false);
+    setLeadFeedback("");
+  };
+
+  const handleLeadUpdate = async (event) => {
+    event.preventDefault();
+
+    if (!leadForm.name.trim() || !leadForm.email.trim()) {
+      setLeadFeedback("Name and email are required.");
+      return;
+    }
+
+    try {
+      setIsSavingLead(true);
+      setLeadFeedback("");
+      await updateLead(id, {
+        name: leadForm.name.trim(),
+        email: leadForm.email.trim(),
+        source: leadForm.source,
+      });
+      await refreshLeads();
+      setIsEditingLead(false);
+      setLeadFeedback("Lead updated.");
+    } catch (requestError) {
+      console.error("Error updating lead:", requestError);
+      setLeadFeedback(getErrorMessage(requestError, "We could not update this lead right now."));
+    } finally {
+      setIsSavingLead(false);
+    }
+  };
+
+  const handleLeadDelete = async () => {
+    if (!lead) {
+      return;
+    }
+
+    try {
+      setIsDeletingLead(true);
+      setLeadFeedback("");
+      await deleteLead(id);
+      await refreshLeads();
+      navigate("/leads");
+    } catch (requestError) {
+      console.error("Error deleting lead:", requestError);
+      setLeadFeedback(getErrorMessage(requestError, "We could not delete this lead right now."));
+    } finally {
+      setIsDeletingLead(false);
+      setIsDeleteConfirmOpen(false);
     }
   };
 
@@ -250,8 +330,131 @@ export default function LeadDetails() {
                   ))}
                 </select>
               </label>
+              {isAdmin ? (
+                <div className="flex w-full flex-wrap gap-2 lg:justify-end">
+                  <button
+                    type="button"
+                    onClick={startEditingLead}
+                    className="inline-flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:text-cyan-700"
+                  >
+                    Edit Lead
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsDeleteConfirmOpen(true)}
+                    disabled={isDeletingLead}
+                    className="inline-flex items-center rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 transition hover:border-rose-300 hover:text-rose-800 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {isDeletingLead ? "Deleting..." : "Delete Lead"}
+                  </button>
+                </div>
+              ) : null}
             </div>
           </div>
+
+          <ConfirmDialog
+            open={isDeleteConfirmOpen}
+            title={`Delete ${lead.name}?`}
+            description="This removes the lead and all of its notes and follow-ups. This action cannot be undone."
+            confirmLabel="Delete Lead"
+            onConfirm={handleLeadDelete}
+            onCancel={() => setIsDeleteConfirmOpen(false)}
+            isConfirming={isDeletingLead}
+          />
+
+          {leadFeedback && !isEditingLead ? (
+            <div className="relative mt-4 rounded-[24px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+              {leadFeedback}
+            </div>
+          ) : null}
+
+          {isAdmin && isEditingLead ? (
+            <form
+              onSubmit={handleLeadUpdate}
+              className="relative mt-6 rounded-[28px] border border-slate-200 bg-slate-50/80 p-5"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                    Edit Lead
+                  </p>
+                  <h3 className="font-display mt-2 text-2xl font-semibold text-slate-950">
+                    Update lead details
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={cancelEditingLead}
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:text-cyan-700"
+                >
+                  Cancel
+                </button>
+              </div>
+
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <label className="block">
+                  <span className="mb-1.5 block text-sm font-medium text-slate-700">Name</span>
+                  <input
+                    type="text"
+                    name="name"
+                    value={leadForm.name}
+                    onChange={handleLeadFieldChange}
+                    required
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1.5 block text-sm font-medium text-slate-700">Email</span>
+                  <input
+                    type="email"
+                    name="email"
+                    value={leadForm.email}
+                    onChange={handleLeadFieldChange}
+                    required
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100"
+                  />
+                </label>
+                <label className="block md:col-span-2">
+                  <span className="mb-1.5 block text-sm font-medium text-slate-700">Source</span>
+                  <select
+                    name="source"
+                    value={leadForm.source}
+                    onChange={handleLeadFieldChange}
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100"
+                  >
+                    <option value="website">Website</option>
+                    <option value="referral">Referral</option>
+                    <option value="social">Social Media</option>
+                    <option value="email">Email Campaign</option>
+                    <option value="event">Event</option>
+                  </select>
+                </label>
+              </div>
+
+              {leadFeedback ? (
+                <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+                  {leadFeedback}
+                </div>
+              ) : null}
+
+              <div className="mt-5 flex flex-wrap gap-3">
+                <button
+                  type="submit"
+                  disabled={isSavingLead}
+                  className="inline-flex items-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                >
+                  {isSavingLead ? "Saving..." : "Save Changes"}
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelEditingLead}
+                  className="inline-flex items-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:text-cyan-700"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : null}
 
           <div className="relative mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <DetailField label="Source" value={formatSource(lead.source)} />

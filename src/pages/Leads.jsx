@@ -10,9 +10,10 @@ const filterOptions = [
 ];
 
 export default function Leads() {
-  const { leads, filteredLeads, loading, error, refreshLeads, searchTerm } = useOutletContext();
+  const { leads, filteredLeads, loading, error, refreshLeads, searchTerm, user } = useOutletContext();
   const [statusFilter, setStatusFilter] = useState("all");
   const [updatingLeadId, setUpdatingLeadId] = useState("");
+  const isAdmin = user?.role === "admin";
 
   const visibleLeads = filteredLeads.filter((lead) =>
     statusFilter === "all" ? true : lead.status === statusFilter
@@ -93,6 +94,9 @@ export default function Leads() {
         loading={loading}
         onStatusChange={handleStatusChange}
         updatingLeadId={updatingLeadId}
+        isAdmin={isAdmin}
+        onLeadUpdated={refreshLeads}
+        onLeadDeleted={refreshLeads}
         emptyTitle={searchTerm ? "No leads match this search" : "No leads in this filter"}
         emptyDescription={
           searchTerm
