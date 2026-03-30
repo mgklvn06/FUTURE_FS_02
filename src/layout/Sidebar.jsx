@@ -99,12 +99,7 @@ export default function Sidebar({ leads, onLogout, user, onNavigate, showCloseBu
           ) : null}
         </div>
 
-        <div className="mt-4">
-          <h1 className="font-display text-2xl font-semibold text-white">CRM HQ</h1>
-          <p className="mt-3 max-w-xs text-sm leading-6 text-slate-400">
-            Clean pipeline visibility for teams that need speed, clarity, and a stronger first impression.
-          </p>
-        </div>
+        
 
         <nav className="mt-6 flex gap-3 overflow-x-auto pb-1 xl:flex-col xl:overflow-visible">
           {navigation.map((item) => {
@@ -117,10 +112,10 @@ export default function Sidebar({ leads, onLogout, user, onNavigate, showCloseBu
                 end={item.end}
                 onClick={onNavigate}
                 className={({ isActive }) =>
-                  `group inline-flex min-w-fit items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                  `group inline-flex min-w-fit items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cyan-200/50 ${
                     isActive
-                      ? "bg-cyan-100 text-slate-950 shadow-lg shadow-cyan-950/20 ring-1 ring-cyan-200/80"
-                      : "border border-white/5 bg-white/5 text-slate-300 hover:border-white/10 hover:bg-white/10 hover:text-white hover:shadow-lg hover:shadow-cyan-950/10"
+                      ? "bg-cyan-200 text-slate-950 shadow-lg shadow-cyan-950/20 ring-1 ring-cyan-200/90"
+                      : "border border-white/5 bg-white/5 text-slate-300 hover:border-white/10 hover:bg-white/10 hover:text-white hover:shadow-lg hover:shadow-cyan-950/10 active:bg-cyan-200/80 active:text-slate-950"
                   }`
                 }
               >
@@ -181,9 +176,7 @@ export default function Sidebar({ leads, onLogout, user, onNavigate, showCloseBu
             </button>
           </div>
 
-          <p className="mt-4 text-sm leading-6 text-slate-400">
-            Search, filter, and update the funnel without leaving the dashboard shell.
-          </p>
+          
         </div>
       </div>
     </aside>

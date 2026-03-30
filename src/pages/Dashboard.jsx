@@ -1,4 +1,4 @@
-import { Link, useOutletContext } from "react-router-dom";
+import { Link, NavLink, useOutletContext } from "react-router-dom";
 import {
   Area,
   AreaChart,
@@ -248,18 +248,30 @@ export default function Dashboard() {
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link
+              <NavLink
                 to="/leads"
-                className="inline-flex items-center rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-50"
+                className={({ isActive }) =>
+                  `inline-flex items-center rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                    isActive
+                      ? "bg-cyan-200 text-slate-950 shadow-lg shadow-cyan-950/20"
+                      : "border-white text-slate-950 hover:bg-cyan-200 active:bg-cyan-200 active:text-slate-950"
+                  }`
+                }
               >
                 Open Leads
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/pipeline"
-                className="inline-flex items-center rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/10"
+                className={({ isActive }) =>
+                  `inline-flex items-center rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+                    isActive
+                      ? "border-white bg-white text-slate-950"
+                      : "border-white/30 bg-transparent text-cyan-100 hover:border-white/60 hover:bg-white/10 hover:text-white active:border-white/80 active:bg-white active:text-slate-950"
+                  }`
+                }
               >
                 Open Pipeline
-              </Link>
+              </NavLink>
               <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
                 {followUpSummary.overdue.length} overdue follow-up
                 {followUpSummary.overdue.length === 1 ? "" : "s"} need attention
